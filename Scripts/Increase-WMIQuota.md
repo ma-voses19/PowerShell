@@ -1,3 +1,12 @@
+# Increase of WMI quota to improve Config Mgr console performance
+
+Some times we run into Config Mgr console performance issues and a good approach to the problem is to double the default size of the MemoryPerHost (which is 536870912) and we have to be extra careful while doing so.
+
+The following PowerShell code doubles the size of MemoryPerHost.
+
+This codes creates a log file WMIQuotaValues.txt under C:\Temp to keep track of the changes and then it will detect the current value for MemoryPerHost and then determine whether it can to be doubled, if is already been doubled or also if it has a different custom value
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -63,3 +72,4 @@ Else { # Third condition is to detect if any other custom value is in place, thi
 #Throw a message on screen with the log location
  
 Write-Host "`n`nLog file C:\Temp\WMIQuotaValues.txt"
+```
