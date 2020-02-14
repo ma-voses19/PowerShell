@@ -1,4 +1,4 @@
-# PowerShell
+# PowerShell for Microsoft Endpoint Manager engineers
 
 This project is to publish my scripts to simplify tasks, educational purposes and keep track of changes
 
