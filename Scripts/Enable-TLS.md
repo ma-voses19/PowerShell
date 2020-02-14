@@ -1,3 +1,17 @@
+# Enable TLS1.2 on ConfigMgr Clients running on older Operating Systems
+
+Old operating systems (Win 7, Win 8, W2K8, W2K8 R2 and W2K12) do not have TLS 1.1 or 1.2 enabled by default and Config Mgr requires it to be enabled starting from 1802.
+
+Error Code: 0x80072F8F (2147954575)
+Error Name: WININET_E_DECODING_FAILED
+Error Source: Windows
+Error Message: Content decoding has failed
+
+The overall process to enable TLS 1.2 can be found on https://docs.microsoft.com/en-us/sccm/core/plan-design/security/enable-tls-1-2 but sometimes Cx's CSS have a hard time configuring this properly for Config Mgr as clients.
+
+If you need to enable TLS on site systems or other infrastructure components (such as databases, MPs, DPs and others) you MUST review the link above because this code will not complete all steps for them.
+
+This code aims to ease the process of enabling the protocol on old OSs.
 
 ```powershell
 <#
