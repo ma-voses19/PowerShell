@@ -13,3 +13,7 @@ Some times updates do not install because the Windows Update Agent is broken so 
 This is a standard procedure for troubleshooting updates that are not getting installed
 
 ![Capture](Media/capture-test.png)
+
+```powershell
+Get-Command *-Service
+```
