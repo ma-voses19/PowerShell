@@ -1,3 +1,64 @@
+# Change verbosity levels in Config Mgr infrastructure components
+
+Deeper logging levels from Config Mgr components are some times preferred due to the nature of some issues.
+
+This script changes the verbose levels of all Config Mgr On-Premise components with a simple GUI from the CAS or the Primary without the need to remote into any of the other site or system servers.
+
+To properly execute this script you need:
+
+- Run PowerShell as administrator
+- Be a full administrator of Configuration Manager
+- Run the script from the top of your hierarchy
+- The remote site/system server needs to:
+  - Be reachable on the network
+  - Have PowerShell enabled to accept remote command execution (winrm quickconfig or Enable-PSRemoting)
+  - Preferred Domain Admin level of permissions to prevent registry modification failures
+
+Here the flow of the script:
+
+Upon first execution, it will validate that the basic requirements for execution are met, it will let know about any issues on screen and also will log the messages on C:\Temp on a file with the format of VerboseLogging-yyyy-MM-dd-hh-mm.txt
+
+![](Media/Set-ConfigMgrVerbosity-1.png)
+
+Here the file content
+
+![](Media/Set-ConfigMgrVerbosity-2.png)
+
+On the GUI we get a summary of the infrastructure ordered from top of the hierarchy to all downstream components 
+
+![](Media/Set-ConfigMgrVerbosity-3.png)
+
+To start modifying site/server systems, click on the drop down to select a server
+
+![](Media/Set-ConfigMgrVerbosity-4.png)
+
+![](Media/Set-ConfigMgrVerbosity-5.png)
+
+Then click on Get
+
+![](Media/Set-ConfigMgrVerbosity-6.png)
+
+The script has discovered what roles the selected machine has deployed and its current verbosity levels, this way we know if previously any default value has been modified.
+To change any values from Default to Verbose or viceversa, just thick the required box and hit Set.
+Following the previous screenshot, we will change Console from Verbose to Default, Component "SMS_REPLICATION_CONFIGURATION_MONITOR" from Default to Verbose, Tracing "SMS_REPLICATION_CONFIGURATION_MONITOR" from Default to Verbose and also will enable SQL Tracing
+
+![](Media/Set-ConfigMgrVerbosity-7.png)
+
+The output window will keep a history of all the actions done but it will not save it anywhere on the logs so please copy/paste its contents for future reference in case required.
+
+There are some components such as SQL for SMS Provider that require to have the SMS Exec restarted in order for verbose logging to kick in or be removed, for such cases, a prompt will be shown on screen. The following sample shows us that we have selected the server SQL1.x.lab and then we clicked Get 
+
+![](Media/Set-ConfigMgrVerbosity-8.png)
+
+We will go ahead an thick the Verbose option and click Set which gives us the following prompt
+
+![](Media/Set-ConfigMgrVerbosity-9.png)
+
+If we click Yes, then the service will be restarted, otherwise we will have to remember to restart it manually later on, this is what would get logged on the output
+
+![](Media/Set-ConfigMgrVerbosity-10.png)
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -1142,3 +1203,4 @@ $Form.Add_Shown({$Form.Activate()})
 [void] $Form.ShowDialog()
 
 $ErrorActionPreference = "Continue"
+```
