@@ -1,3 +1,5 @@
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -179,3 +181,4 @@ $KB = "KB3140245"
 $Counter = 0
  
 Foreach ( $A in $X ) { If ( $A -Like "*$KB*" ) { Write-Host "$KB found, please restart the computer for changes to take effect"; break } else { $Counter++; If ( $Counter -eq $X.Count ) { Write-Warning "$KB needs to be installed, restart the computer upon installation" } } }
+```
