@@ -1,3 +1,32 @@
+# Enable and disable verbose logging for Windows Update Agent (WUA), Config Mgr Agent and Component-Based Servicing (CBS)
+
+Engineers need to enable verbose logging on these components to see further data in order to continue troubleshooting, this script ease that process through PowerShell automation.
+
+For the following sample, we have copied and pasted the code and named the file as Set-ConfigMgrAgentVerbosity.ps1
+
+To enable verbose logging on Windows Update Agent (WUA) run: .\Set-ConfigMgrAgentVerbosity.ps1 -WUAVerboseMode Enable
+To enable verbose logging on Config Mgr Agent run: .\Set-ConfigMgrAgentVerbosity.ps1 -ConfigMgrAgentVerboseMode Enable
+To enable verbose logging on Component-Based Servicing (CBS) run: .\Set-ConfigMgrAgentVerbosity.ps1 -CBSVerboseMode Enable
+
+To disable verbose logging on Windows Update Agent (WUA) run: .\Set-ConfigMgrAgentVerbosity.ps1 -WUAVerboseMode Disable
+To disable verbose logging on Config Mgr Agent run: .\Set-ConfigMgrAgentVerbosity.ps1 -ConfigMgrAgentVerboseMode Disable
+To disable verbose logging on Component-Based Servicing (CBS) run: .\Set-ConfigMgrAgentVerbosity.ps1 -CBSVerboseMode Disable
+
+This is how it looks like upon a success execution
+
+![](Media/Set-ConfigMgrAgentVerbosity-1.png)
+
+![](Media/Set-ConfigMgrAgentVerbosity-2.png)
+
+![](Media/Set-ConfigMgrAgentVerbosity-3.png)
+
+![](Media/Set-ConfigMgrAgentVerbosity-4.png)
+
+![](Media/Set-ConfigMgrAgentVerbosity-5.png)
+
+![](Media/Set-ConfigMgrAgentVerbosity-6.png)
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -182,3 +211,4 @@ Output -Text "CBS | Enabled"
 [Environment]::SetEnvironmentVariable("WINDOWS_TRACING_FLAGS",$null, [System.EnvironmentVariableTarget]::Machine)
  
 Output -Text "CBS | Disabled" }
+```
