@@ -20,3 +20,6 @@ Get-Command *-Service
 ```
 ![Test](Reset-WUA.ps1)
 
+
+[Enable optional features from updates](/location)
+
