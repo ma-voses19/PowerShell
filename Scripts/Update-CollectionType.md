@@ -1,3 +1,27 @@
+# Change "Incremental Updates for this Collection" in Config Mgr
+
+Poor performance some times is faced on Config Mgr environments where the usage of incremental updates for collections is extensively used.
+
+More than 200 collections using the type 4 "Use incremental updates for this collection" or 6 "Use incremental updates for this collection with Schedule a full update on this collection"
+Type 4 sample:
+
+![](Media/Update-CollectionType-1.png)
+
+Type 6 sample:
+
+![](Media/Update-CollectionType-2.png)
+
+The following code helps to update the previously mentioned update types to type 2 "Schedule a full update on this collection"
+
+![](Media/Update-CollectionType-3.png)
+
+#### NOTE: This script needs to be ran from the top of the hierarchy
+
+Here is a sample of a successful execution
+
+![](Media/Update-CollectionType-4.png)
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -73,3 +97,4 @@ Function Change-Type {
 Change-Type -Type 4
 
 Change-Type -Type 6
+```
