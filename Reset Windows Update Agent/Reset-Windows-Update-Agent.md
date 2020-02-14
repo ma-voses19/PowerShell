@@ -17,3 +17,4 @@ This is a standard procedure for troubleshooting updates that are not getting in
 ```powershell
 Get-Command *-Service
 ```
+![Test](Media/capture-test.png)
