@@ -1,3 +1,21 @@
+# Gather installed programs
+
+Often we need to gather a list of all installed programs on a system to be able to troubleshoot.
+
+The code generates a file under the current executing user profile desktop ($env:userprofile\Desktop) with the name of InstalledApps.txt with the details retrieved from registry and the WMI class Win32_Product
+After being executed, it show the following on screen
+
+![](Media/Gather-InstalledPrograms-1.png)
+
+The contents of the file will reveal
+
+![](Media/Gather-InstalledPrograms-2.png)
+.
+.
+.
+![](Media/Gather-InstalledPrograms-3.png)
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -56,3 +74,4 @@ Write-Host "`nGathering data from Win32_Product"
 Get-WmiObject -Class Win32_Product | Select-Object Name, InstallSource, InstallLocation | Format-Table | Out-File -FilePath $env:USERPROFILE\Desktop\InstalledApps.txt -Encoding utf8 -Append
 
 Write-Host "`nFinished"
+```
