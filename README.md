@@ -5,7 +5,7 @@ This project is to publish my scripts to simplify tasks, educational purposes an
 Here an index of the ones tested so far (any feedback is well received).
 
 - Automate Config Mgr Software Update Deployment
-- Enable TLS1.2 on old OSs Config Mgr Clients
+- [Enable TLS1.2 on old OSs Config Mgr Clients](Scripts/Enable-TLS.md)
 - Wipe Config Mgr agent
 - Gather general Config Mgr client information
 - Increase of WMI quota to improve Config Mgr console performance
