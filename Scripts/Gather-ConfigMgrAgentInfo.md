@@ -1,3 +1,42 @@
+# Gather general Config Mgr client information and run connectivity test
+
+The intend of this PowerShell code is to ease the retrieval of the following information from any Windows OS acting as a Config Mgr client when troubleshooting:
+- Current executing user, time and pending restarts.
+- Machine (Name, Domain, Manufacturer, Model, Memory, Num of Physical Proc, Num of Logical Proc)
+- OS (Version, Architecture, Install Date, Boot Time, Time Zone)
+- Network (IP Address, Alias, Description, Gateway)
+- Proxy
+- DC and AD Site
+- Computer secure channel test
+- Config Mgr Agent (Site Code, Version, GUID, PKI, MPs)
+- MPs connectivity test (ping, reverse, forward, port 80 and 443)
+- Cache (Size, Location, Contents)
+- Maintenance Windows (with schedules)
+- Business Hours
+- Deployments:
+- Compliance (DCM)
+- Applications
+- Packages
+- Task Sequences
+- Updates
+- Installed Updates
+- Device drivers
+- Devices with problems
+- Antivirus or AntiSpyware 
+- Mini filter drivers
+- Installed programs
+- Running processes
+- Services
+- Firewall profiles status
+- GPResult
+
+1. Copy the code and save it to the remote machine.
+2. Run a PowerShell as administrator.
+3. Execute the script.
+4. Grab the generated file from C:\Temp\, file name under the format Info-YYYY-MM-DD-hh-mm.txt
+5. Grab the generated GPResult from C:\Temp\, file name under the format Info-YYYY-MM-DD-hh-mm.html
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -476,3 +515,4 @@ Get-FirewallState | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encodin
 $Filename = "Info-"+(Get-Date -Format "yyyy-MM-dd-HH-mm")+".html"
 
 GPResult -H C:\Temp\$Filename
+```
