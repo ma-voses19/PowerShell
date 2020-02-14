@@ -16,5 +16,7 @@ This is a standard procedure for troubleshooting updates that are not getting in
 
 ```powershell
 Get-Command *-Service
+Get-Command *-Service
 ```
 ![Test](Reset-WUA.ps1)
+
