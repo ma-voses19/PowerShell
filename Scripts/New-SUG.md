@@ -1,3 +1,10 @@
+# Automate Config Mgr Software Update Deployment
+
+Automate software deployments via PowerShell. This code creates the Software Update Group (SUG), adds update to the SUG, creates the deployment package, downloads the content and finally creates the deployment.
+Script must be executed on a central administration site or primary site server of you Configuration Manager hierarchy
+The following code aims to provide basics on how to fully deploy software updates, please use it as a base sample and modify where required.
+
+```powershell
 <#
     .NOTES
     ===========================================================================
@@ -162,3 +169,4 @@ New-CMSoftwareUpdateDeployment -SoftwareUpdateGroupName $SUGName -CollectionName
 -PersistOnWriteFilterDevice $False -SendWakeUpPacket $False -VerbosityLevel AllMessages -TimeBasedOn LocalTime -UserNotification DisplayAll `
 -GenerateSuccessAlert $false -DisableOperationsManagerAlert $false -GenerateOperationsManagerAlert $false `
 -ProtectedType RemoteDistributionPoint -UseBranchCache $false -DownloadFromMicrosoftUpdate $false -UseMeteredNetwork $false -RequirePostRebootFullScan $True
+```
