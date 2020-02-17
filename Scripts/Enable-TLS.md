@@ -9,7 +9,7 @@ Error Message: Content decoding has failed
 
 The overall process to enable TLS 1.2 can be found on https://docs.microsoft.com/en-us/sccm/core/plan-design/security/enable-tls-1-2 but sometimes Cx's CSS have a hard time configuring this properly for Config Mgr as clients.
 
-If you need to enable TLS on site systems or other infrastructure components (such as databases, MPs, DPs and others) you MUST review the link above because this code will not complete all steps for them.
+**If you need to enable TLS on site systems or other infrastructure components (such as databases, MPs, DPs and others) you MUST review the link above because this code will not complete all steps for them.**
 
 This code aims to ease the process of enabling the protocol on old OSs.
 
