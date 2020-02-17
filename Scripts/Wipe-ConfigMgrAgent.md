@@ -1,13 +1,14 @@
-# Reset Windows Update Agent
+# Automate removal and cleanup of ConfigMgr client
 
-Some times updates do not install because the Windows Update Agent is broken so we would reset with agent as part of troubleshooting, this script automates that process
+Customers wants to automate the removal and clean up of Config Mgr agent via PowerShell.
 
-This is a standard procedure for troubleshooting updates that are not getting installed
+**NOTE: Do NOT run this script on a device that has any other ConfigMgr Site System roles installed.**
+
+This code uninstalls the agent, deletes the folders C:\Windows\CCM, C:\Windows\CCMSetup, C:\Windows\CCMCache, C:\Windows\CCMTemp, the files C:\Windows\SMSCFG.ini, C:\Windows\SMS*.mif, the registry keys HKLM:\SOFTWARE\Microsoft\CCMSetup, HKLM:\SOFTWARE\Microsoft\SMS, HKLM:\Software\Microsoft\SystemCertificates\SMS\Certificates and finally, any scheduled task within Microsoft\Configuration Manager
 
 This is how it would like upon success
 
-![](Media/Reset-WUA-1.png)
-
+![](Media/Wipe-Config-Mgr-agent-1.png)
 
 ```powershell
 <#
