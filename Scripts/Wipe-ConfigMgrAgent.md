@@ -4,7 +4,18 @@ Customers wants to automate the removal and clean up of Config Mgr agent via Pow
 
 **NOTE: Do NOT run this script on a device that has any other ConfigMgr Site System roles installed.**
 
-This code uninstalls the agent, deletes the folders C:\Windows\CCM, C:\Windows\CCMSetup, C:\Windows\CCMCache, C:\Windows\CCMTemp, the files C:\Windows\SMSCFG.ini, C:\Windows\SMS*.mif, the registry keys HKLM:\SOFTWARE\Microsoft\CCMSetup, HKLM:\SOFTWARE\Microsoft\SMS, HKLM:\Software\Microsoft\SystemCertificates\SMS\Certificates and finally, any scheduled task within Microsoft\Configuration Manager
+This code uninstalls the agent, deletes the folders:
+
+- C:\Windows\CCM
+- C:\Windows\CCMSetup
+- C:\Windows\CCMCache
+- C:\Windows\CCMTemp
+- C:\Windows\SMSCFG.ini
+- C:\Windows\SMS*.mif
+- HKLM:\SOFTWARE\Microsoft\CCMSetup
+- HKLM:\SOFTWARE\Microsoft\SMS
+- HKLM:\Software\Microsoft\SystemCertificates\SMS\Certificates
+- Any scheduled task within Microsoft\Configuration Manager
 
 This is how it would like upon success
 
