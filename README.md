@@ -2,6 +2,8 @@
 
 This project is to publish my scripts to simplify tasks, educational purposes and keep track of changes
 
+**Scripts provided "AS IS", there is no official support for them as such. 
+
 Here an index of the ones tested so far (any feedback is well received).
 
 - [Automate Config Mgr Software Update Deployment](Scripts/New-SUG.md)
