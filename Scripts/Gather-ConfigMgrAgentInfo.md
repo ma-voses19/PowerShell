@@ -42,6 +42,7 @@ The intend of this PowerShell code is to ease the retrieval of the following inf
     ===========================================================================
      Created on:   Feb/12/2020
      Version :     1.0, Initial Release
+        Abr/09/2020 1.1, Added Azure AD validation, added retrieval of client settings, added Win7 compatibility for commands not available on that OS
      Created by:   Vinicio Oses
      Organization: System Center Configuration Manager Costa Rica
      Filename:     Gather-ConfigMgrAgentInfo.ps1
@@ -136,7 +137,15 @@ $TimeZone = ([System.TimeZone]::CurrentTimeZone).StandardName
 
 Get-WmiObject -Class Win32_OperatingSystem | Select-Object Caption, @{Name="Version"; Expression={ $Version } } , OSArchitecture, @{Name="InstallDate"; Expression={ ChangeDateFormat $_.InstallDate } }, @{Name="LastBootUpTime"; Expression={ ChangeDateFormat $_.LastBootUpTime } }, @{Name="Time Zone"; Expression={ $TimeZone } } | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append
 
-Get-NetIPConfiguration | Select-Object -Property InterfaceAlias, InterfaceDescription, @{Name="IP Address"; Expression={ If ( $_.IPv4Address -ne $null ) { $_.IPv4Address } else { $_.IPv6Address } } }, @{Name="Gateway"; Expression={ $X = ($_.IPv4DefaultGateway).NextHop; if ( $X -eq $null ) { $X = ($_.IPv6DefaultGateway).NextHop; $X } else { $X } }  } | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append
+If ( ( [System.Environment]::OSVersion.Version ).Major -ge 10 ) { $OSVer = 10 } Else { $OSVer = 7 }
+
+Switch ( $OSVer ) {
+    10 { dsregcmd /status | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+    7  { $Out = "To validate AzureAD status on Windows 7 you need to download Microsoft Workplace Join for non-Windows 10 computers from https://www.microsoft.com/en-us/download/details.aspx?id=53554"; Phrase -String $Out; AddSpaceOnFile -Number 2 } }
+
+Switch ( $OSVer ) {
+    10 { Get-NetIPConfiguration | Select-Object -Property InterfaceAlias, InterfaceDescription, @{Name="IP Address"; Expression={ If ( $_.IPv4Address -ne $null ) { $_.IPv4Address } else { $_.IPv6Address } } }, @{Name="Gateway"; Expression={ $X = ($_.IPv4DefaultGateway).NextHop; if ( $X -eq $null ) { $X = ($_.IPv6DefaultGateway).NextHop; $X } else { $X } }  } | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+    7  { $Out = IPConfig /all; Phrase -String $Out; AddSpaceOnFile -Number 2 } }
 
 $Out = netsh winhttp show proxy
 
@@ -174,39 +183,62 @@ $MPs = Get-WmiObject -Class SMS_LookupMP -Namespace ROOT\ccm | Select-Object Nam
 
 Phrase -String "Testing connectivity against MP(s)"
 
-AddSpaceOnFile -Number 2
-
 ForEach ( $MP in $MPs ) {
 
-    If ( Test-Connection -ComputerName $MP.Name ) {
-        Test-Connection -ComputerName $MP.Name | Select-Object PSComputerName, Address, ProtocolAddress, BufferSize, ResponseTime | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
-    else { $Error[0].Exception.Message | Add-Content C:\Temp\$Filename }
+    AddSpaceOnFile -Number 2
+
+    Switch ( $OSVer ) {
+        10 {    If ( Test-Connection -ComputerName $MP.Name ) {
+                Test-Connection -ComputerName $MP.Name | Select-Object PSComputerName, Address, ProtocolAddress, BufferSize, ResponseTime | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+                else { $Error[0].Exception.Message | Add-Content C:\Temp\$Filename } }
+        7  {    $Ping = Ping $MP.Name -4; Phrase -String $Ping; AddSpaceOnFile -Number 2 } }
 
     Phrase -String "Forward lookup"
     AddSpaceOnFile -Number 1
 
-    If ( Resolve-DnsName -Name $MP.Name ) {
-        Resolve-DnsName -Name $MP.Name | Select-Object Name, Type, Address | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
-    else { $Error[0].Exception.Message | Add-Content C:\Temp\$Filename }
+    Switch ( $OSVer ) {
+        10 {    If ( Resolve-DnsName -Name $MP.Name -Type A ) {
+                Resolve-DnsName -Name $MP.Name -Type A | Select-Object Name, Type, Address | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+                else { $Error[0].Exception.Message | Add-Content C:\Temp\$Filename } }
+        7  { $Out = NSLookup $MP.Name; Phrase -String $Out; AddSpaceOnFile -Number 2 } }
 
-    $IP = ( Resolve-DnsName -Name $MP.Name ).IPAddress
+    Switch ( $OSVer ) {
+        10 {    $IP = ( Resolve-DnsName -Name $MP.Name -Type A ).IPAddress }
+        7  {    $IP = [regex]$rx = "(\d{1,3}(\.?)){4}"; $rx.matches($PING[1]).Value } }
 
     Phrase -String "Reverse lookup"
     AddSpaceOnFile -Number 2
 
-    If ( Resolve-DnsName -Name $IP ) {
-        Resolve-DnsName -Name $ip | Select-Object Name, Type, Address | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
-    else { $Error[0].Exception.Message | Add-Content C:\Temp\$Filename }
+    Switch ( $OSVer ) {
+        10 { 
+                If ( Resolve-DnsName -Name $IP ) {
+                Resolve-DnsName -Name $IP | Select-Object Name, Type, Address | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+                else { $Error[0].Exception.Message | Add-Content C:\Temp\$Filename } }
+        7  { $Out = "Reverse NsLookup does not work well with earlier versions of Windows"; Phrase -String $Out; AddSpaceOnFile -Number 2 } }
 
     AddSpaceOnFile -Number 2
     Phrase -String "Ports"
     AddSpaceOnFile -Number 1
 
-    Test-NetConnection -ComputerName $MP.Name -Port 80 | Select-Object SourceAddress, RemoteAddress, RemotePort, TcpTestSucceeded | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append
+    Function Test-Ports-Win-7 ( ) {
+        param ( [Parameter(Mandatory=$True,ValueFromPipeline=$True)] [String]$RemotePCName,
+        [Parameter(Mandatory=$True,ValueFromPipeline=$True)] [Int]$Port )
+        $Socket = New-Object Net.Sockets.TcpClient; $Socket.Connect($RemotePCName, $Port)
+        If ( $Socket.Connected -eq "True" ) { $Socket.Close(); return $True } Else { Return $false } }
 
-    Test-NetConnection -ComputerName $MP.Name -Port 443 | Select-Object SourceAddress, RemoteAddress, RemotePort, TcpTestSucceeded | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append
+    Switch ( $OSVer ) {
+    10 { Test-NetConnection -ComputerName $MP.Name -Port 80 | Select-Object SourceAddress, RemoteAddress, RemotePort, TcpTestSucceeded | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+    7  { If ( ( Test-Ports-Win-7 -RemotePCName $MP.Name -Port 80 ) -eq $true ) { $Out = "Port 80 connected on "+$MP.Name; Phrase -String $Out } Else { $Out = "Unable to connect on port 80 on "+$MP.Name; Phrase -String $Out } } }
 
-    Test-NetConnection -ComputerName $MP.Name -Port 10123 | Select-Object SourceAddress, RemoteAddress, RemotePort, TcpTestSucceeded | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+    Switch ( $OSVer ) {
+    10 { Test-NetConnection -ComputerName $MP.Name -Port 443 | Select-Object SourceAddress, RemoteAddress, RemotePort, TcpTestSucceeded | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+    7  { If ( ( Test-Ports-Win-7 -RemotePCName $MP.Name -Port 443 ) -eq $true ) { $Out = "Port 443 connected on "+$MP.Name; Phrase -String $Out } Else { $Out = "Unable to connect on port 443 on "+$MP.Name; Phrase -String $Out } } }
+    
+    Switch ( $OSVer ) {
+    10 { Test-NetConnection -ComputerName $MP.Name -Port 10123 | Select-Object SourceAddress, RemoteAddress, RemotePort, TcpTestSucceeded | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append }
+    7  { If ( ( Test-Ports-Win-7 -RemotePCName $MP.Name -Port 10123 ) -eq $true ) { $Out = "Port 10123 connected on "+$MP.Name; Phrase -String $Out } Else { $Out = "Unable to connect on port 10123 on "+$MP.Name; Phrase -String $Out } } }
+
+     }
 
 Get-WmiObject -Class CacheConfig -Namespace ROOT\ccm\SoftMgmtAgent | Select-Object  @{Name="CCMCache Size"; Expression={ $_.Size } }, Location | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append
 
@@ -388,6 +420,38 @@ $StartTime = $BH.StartTime
 $EndTime = $BH.EndTime
 
 Invoke-WmiMethod -Class CCM_ClientUXSettings -Name GetBusinessHours -Namespace ROOT\ccm\ClientSDK | Select-Object StartTime, EndTime, @{Name="Days"; Expression={"$Days"} } | Format-Table | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append
+
+## Client setting test
+
+
+$ClientSettings1 = @()
+$ClientSettings1 += "CCM_ClientAgentConfig", "CCM_Logging_GlobalConfiguration", "CCM_PolicyAgent_Configuration", "CCM_Service_ResourceProfileConfiguration"
+
+$ClientSettings2 = @()
+$ClientSettings2 = ( Get-WmiObject -Namespace ROOT\ccm\Policy\Machine\ActualConfig -Class CCM_ComponentClientConfig | Select-Object __Class ).__Class
+$ClientSettings2 = $ClientSettings2 | Sort-Object
+
+Phrase -String "Client Settings"
+
+AddSpaceOnFile -Number 2
+
+ForEach ( $ClientSetting in $ClientSettings1 ) {
+
+    Phrase -String ":: $ClientSetting ::"
+
+    Get-CimInstance -ClassName $ClientSetting -Namespace ROOT\ccm\Policy\Machine\ActualConfig | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append 
+
+}
+
+$CimInstance = Get-CimInstance -ClassName CCM_ComponentClientConfig -Namespace ROOT\ccm\Policy\Machine\ActualConfig
+
+ForEach ( $ClientSetting in $ClientSettings2 ) {
+
+    Phrase -String ":: $ClientSetting ::"
+
+    $CimInstance | Where-Object { $_.CimClass -Like "*$ClientSetting" } | Out-File -FilePath C:\Temp\$Filename -Encoding utf8 -Append 
+
+}
 
 Phrase -String "DCM Deployments"
 
