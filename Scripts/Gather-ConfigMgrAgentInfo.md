@@ -48,13 +48,14 @@ The intend of this PowerShell code is to ease the retrieval of the following inf
     .NOTES
     ===========================================================================
      Created on:   Feb/12/2020
-     Version :     1.2, Added more commands to retrieve more data
+     Version :     1.2
         Feb/12/2020 1.0, Initial Release
         Abr/09/2020 1.1, Added Azure AD validation, added retrieval of client settings, added Win7 compatibility for commands not available on that OS.
-        Jul/29/2020 1.2, Added code to retrieve all WMI instances for all classes within the Root\CCM namespace instead of retriving WMI info on client settings.
+        Jul/31/2020 1.2, Added code to retrieve all WMI instances for all classes within the Root\CCM namespace instead of retriving WMI info on client settings.
                          Added MSINFO32, SystemInfo, IPConfig, BITSAdmin, key Config mgr registry, MDM report exports.
                          Added code to backup CCM, CCMSetup, WindowsUpdate, Windows upgrade logs and event logs.
                          Output files are now saved on a folder under C:\Temp with the name "ComputerName"-YY-MM-DD-HH-mm (and a .zip file with the same name for Windows 10)
+                         Expanded certificates capabilities to capture more data, capture local admins group membership
      Created by:   Vinicio Oses
      Organization: System Center Configuration Manager Costa Rica
      Filename:     Gather-ConfigMgrAgentInfo.ps1
@@ -101,6 +102,10 @@ The intend of this PowerShell code is to ease the retrieval of the following inf
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 If ( ( $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) ) -eq $false ) { Write-Warning "PowerShell must be executed as administrator";  $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp") > $null; exit }
+
+$ErrorActionPreference = "SilentlyContinue"
+
+$ExecutionPath = (Get-Location).Path
 
 If ( ( Test-Path -Path C:\Temp ) -ne $true ) { New-Item -Path "C:\" -Name Temp -ItemType Directory -Force }
 
@@ -182,6 +187,12 @@ Phrase -String $Out
 
 AddSpaceOnFile -Number 2
 
+$Out = net localgroup Administrators
+
+Phrase -String $Out
+
+AddSpaceOnFile -Number 2
+
 $Domain = (Get-WmiObject -Class Win32_ComputerSystem).Domain
 
 $Out = NLTest /dsgetdc:$Domain
@@ -203,6 +214,39 @@ Get-WmiObject -Class SMS_Client -Namespace ROOT\ccm | Select-Object ClientVersio
 Get-WmiObject -Class CCM_Client -Namespace ROOT\ccm | Select-Object ClientId, PreviousClientId, ClientIdChangeDate | Format-Table | Out-File -FilePath $FullFileName -Encoding utf8 -Append
 
 Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\CCM | Select-Object PKICertReady, CMGFQDNs, DisAllowCMG | Format-Table | Out-File -FilePath $FullFileName -Encoding utf8 -Append
+
+#Certificate information
+
+New-Item -Path "C:\Temp\$NewFolderName" -Name Certificates.txt -ItemType File  -Force
+
+Function RetrieveCerts () {
+    $List = $Null
+    $List = @()
+    $List = Get-ChildItem -Recurse
+    foreach ( $X in $List ) {
+        $Subject = $X.Subject; Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`tSubject: $Subject" 
+        If ( $X.FriendlyName -ne "" ) { $FriendlyName = $X.FriendlyName; Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`t`tFriendly Name: $FriendlyName" }
+        If ( $X.DnsNameList -ne "" ) { $DnsNameList = $X.DnsNameList; Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`t`tDNS Name List: $DnsNameList" }
+        If ( $X.Issuer -ne "" ) { $Issuer = $X.Issuer; Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`t`tIssuer: $Issuer" }
+        $GetExpirationDateString = $X.GetExpirationDateString(); Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`t`tExpiration date: $GetExpirationDateString"
+        $HasPrivateKey = $X.HasPrivateKey; Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`t`tHasPrivateKey: $HasPrivateKey" 
+        $Archived = $X.Archived; Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`t`tArchieved: $Archived" 
+        $Thumbprint = $X.Thumbprint; Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "`t`tThumbprint: $Thumbprint" } }
+
+Set-Location Cert:\LocalMachine\My
+Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "Personal Store"
+RetrieveCerts
+Set-Location Cert:\LocalMachine\Root
+Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "Trusted Root CA"
+RetrieveCerts
+Set-Location Cert:\LocalMachine\CA
+Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "Intermediate CA"
+RetrieveCerts
+Set-Location Cert:\LocalMachine\SMS
+Add-Content -Path "C:\Temp\$NewFolderName\Certificates.txt" -Value "SMS"
+RetrieveCerts
+
+$ExecutionPath = (Get-Location).Path
 
 Get-ChildItem -Path CERT:\LocalMachine\My | Select-Object @{Name="Certificate Thumbprint"; Expression={ $_.Thumbprint } }, NotAfter, Issuer, Subject | Format-Table | Out-File -FilePath $FullFileName -Encoding utf8 -Append
 
@@ -667,7 +711,7 @@ Reg Export "HKLM\SOFTWARE\Microsoft\.NETFramework" C:\Temp\$NewFolderName\RegKey
 Reg Export "HKLM\SOFTWARE\Wow6432Node\Microsoft\.NETFramework" C:\Temp\$NewFolderName\RegKey_TLS_NETFramework_x64.txt
 
 #WINHTTP, TLS
- 
+ 
 Reg Export "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings" C:\Temp\$NewFolderName\RegKey_TLS_InternetSettings.txt
 Reg Export "HKLM\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Internet Settings" C:\Temp\$NewFolderName\RegKey_TLS_InternetSettings_x64.txt
 
@@ -714,4 +758,7 @@ If ( Test-Path -Path $WindowsBT\Sources\Rollback ) {
 Copy-Item -Path C:\Windows\System32\winevt -Destination C:\Temp\$NewFolderName -Force -Recurse -Confirm:$false
 
 If ( $OSVer -eq 10 ) { Compress-Archive -Path C:\Temp\$NewFolderName -DestinationPath C:\Temp\$NewFolderName -Force -Confirm:$false }
+
+$ErrorActionPreference = "Continue"
+
 ```
