@@ -675,7 +675,7 @@ Reg Export "HKLM\Software\Microsoft\PolicyManager" C:\Temp\$NewFolderName\RegKey
 
 Reg Export "HKLM\Software\Microsoft\Enrollments" C:\Temp\$NewFolderName\RegKey_Enrollments.txt
 
-Start-Process MdmDiagnosticsTool.exe -Wait -ArgumentList "-out C:\Temp\$NewFolderName\MDMDiag.html" -NoNewWindow
+If ( $OSVer -eq 10 ) { Start-Process MdmDiagnosticsTool.exe -Wait -ArgumentList "-out C:\Temp\$NewFolderName\MDMDiag.html" -NoNewWindow }
 
 New-Item -Path C:\Temp\$NewFolderName -Name CCM_Logs -ItemType Directory -Force
 
