@@ -40,8 +40,7 @@ The intend of this PowerShell code is to ease the retrieval of the following inf
 1. Copy the code and save it to the remote machine.
 2. Run a PowerShell as administrator.
 3. Execute the script.
-4. Grab the generated file from C:\Temp\, file name under the format Info-YYYY-MM-DD-hh-mm.txt
-5. Grab the generated GPResult from C:\Temp\, file name under the format Info-YYYY-MM-DD-hh-mm.html
+4. Grab the generated folder with the name "ComputerName"-YY-MM-DD-HH-mm (or a .zip file with the same name for Windows 10) from C:\Temp
 
 ```powershell
 <#
