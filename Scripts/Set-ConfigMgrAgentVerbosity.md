@@ -5,11 +5,15 @@ Engineers need to enable verbose logging on these components to see further data
 For the following sample, we have copied and pasted the code and named the file as Set-ConfigMgrAgentVerbosity.ps1
 
 To enable verbose logging on Windows Update Agent (WUA) run: .\Set-ConfigMgrAgentVerbosity.ps1 -WUAVerboseMode Enable
+
 To enable verbose logging on Config Mgr Agent run: .\Set-ConfigMgrAgentVerbosity.ps1 -ConfigMgrAgentVerboseMode Enable
+
 To enable verbose logging on Component-Based Servicing (CBS) run: .\Set-ConfigMgrAgentVerbosity.ps1 -CBSVerboseMode Enable
 
 To disable verbose logging on Windows Update Agent (WUA) run: .\Set-ConfigMgrAgentVerbosity.ps1 -WUAVerboseMode Disable
+
 To disable verbose logging on Config Mgr Agent run: .\Set-ConfigMgrAgentVerbosity.ps1 -ConfigMgrAgentVerboseMode Disable
+
 To disable verbose logging on Component-Based Servicing (CBS) run: .\Set-ConfigMgrAgentVerbosity.ps1 -CBSVerboseMode Disable
 
 This is how it looks like upon a success execution
