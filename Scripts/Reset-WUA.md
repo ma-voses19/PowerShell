@@ -12,8 +12,9 @@ This is how it would like upon success
 <#
     .NOTES
     ===========================================================================
-     Created on:   Feb/12/2020
-     Version :     1.0, Initial Release
+     Created on:   July/22/2021
+     Version:       1.1, Added minor validations
+                    1.0, Initial Release
      Created by:   Vinicio Oses
      Organization: System Center Configuration Manager Costa Rica
      Filename:     Reset-WUA.ps1
@@ -27,16 +28,24 @@ This is how it would like upon success
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 If ( ( $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) ) -eq $false ) { Write-Warning "PowerShell must be executed as administrator";  Start-Sleep 3 }
 
-Stop-Service -Name BITS -Force -Confirm:$False -ErrorAction SilentlyContinue
+Function Timer { Param ( $Seconds, $Legend )
+
+    For( $i = 1; $i -le $Seconds; $i++) { Write-Progress -Activity “$Legend ($Seconds secs).” -status “$i secs...” -percentComplete ($i / $Seconds*100); Start-Sleep -Seconds 1 } }
+
+If ( ( Get-Service -Name BITS ).Status -eq "Running" ) { Stop-Service -Name BITS -Force -Confirm:$False -ErrorAction SilentlyContinue }
 
 $ID = Get-WmiObject -Class Win32_Service -Filter "Name LIKE 'wuauserv'" | Select-Object -ExpandProperty ProcessId
-taskkill /pid $ID /F
+
+If ( $ID -ne 0 ) { taskkill /pid $ID /F }
+
 Set-Service -Name wuauserv -StartupType Disabled -Confirm:$False -ErrorAction SilentlyContinue
 
-Stop-Service -Name AppIDSvc -Force -Confirm:$False -ErrorAction SilentlyContinue
+If ( ( Get-Service -Name AppIDSvc ).Status -eq "Running" ) { Stop-Service -Name AppIDSvc -Force -Confirm:$False -ErrorAction SilentlyContinue }
 
 $ID = Get-WmiObject -Class Win32_Service -Filter "Name LIKE 'CryptSvc'" | Select-Object -ExpandProperty ProcessId
-taskkill /pid $ID /F
+
+If ( $ID -ne 0 ) { taskkill /pid $ID /F }
+
 Set-Service -Name CryptSvc -StartupType Disabled -Confirm:$False -ErrorAction SilentlyContinue
 
 If ( Test-Path -Path $env:SystemRoot\system32\Catroot2 -ErrorAction SilentlyContinue ) { Remove-Item -Path $env:SystemRoot\system32\Catroot2 -Recurse -Force -Confirm:$False -ErrorAction SilentlyContinue }
@@ -110,11 +119,13 @@ Wuauclt /resetauthorization /detectnow
 
 Wuauclt /detectnow /reportnow
 
-Write-Warning "Waiting 30 secs to check for updates"
-
-For($i = 1; $i -le 30; $i++){ Write-Host "Waiting... $i"; Start-Sleep 1 }
-
-Wuauclt /updatenow
-
 Write-Host "Finished"
+
+$CheckForUpdates = Read-Host "Do you want to check for updates now?(y/n) "
+
+$CheckForUpdates = $CheckForUpdates.ToLower()
+
+If ( $CheckForUpdates -eq "n" ) { Write-Host "Will not check for updates" }
+ElseIf ( $CheckForUpdates -eq "y" ) { Timer -Seconds 30 -Legend "Waiting 30 secs to check for updates"; Wuauclt /updatenow }
+ElseIf ( ( $CheckForUpdates -ne "y" ) -or ( $CheckForUpdates -ne "n" ) ) { Write-Host "Option invalid, will not check for updates" }
 ```
