@@ -52,8 +52,6 @@ If ( Test-Path -Path $env:SystemRoot\system32\Catroot2 -ErrorAction SilentlyCont
 
 If ( Test-Path -Path $env:ALLUSERSPROFILE\Microsoft\Network\Downloader -ErrorAction SilentlyContinue ) { Remove-Item -Path $env:ALLUSERSPROFILE\Microsoft\Network\Downloader -Recurse -Force -Confirm:$False -ErrorAction SilentlyContinue }
 
-If ( Test-Path -Path C:\ProgramData\Microsoft\Network\Downloader -ErrorAction SilentlyContinue ) { Remove-Item -Path C:\ProgramData\Microsoft\Network\Downloader -Recurse -Force -Confirm:$False -ErrorAction SilentlyContinue }
-
 If ( Test-Path -Path $env:SystemRoot\SoftwareDistribution -ErrorAction SilentlyContinue ) { Remove-Item -Path $env:SystemRoot\SoftwareDistribution -Recurse -Force -Confirm:$False -ErrorAction SilentlyContinue }
 
 regsvr32.exe /s $env:SystemRoot\System32\atl.dll
