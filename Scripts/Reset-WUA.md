@@ -8,6 +8,10 @@ This is how it would like upon success
 
 ![](Media/Reset-WUA-1.png)
 
+When copy/pasting to a notepad, use **Encoding: ANSI**
+
+![](Media/SaveAs.jpg)
+
 ```powershell
 <#
     .NOTES
